@@ -31,13 +31,7 @@ class Rota
         Flight::route('GET /' . $mgmt_route . '(/@metodo:[a-z]+(/@param1))', function ($metodo, $param1) use ($mgmt_class) {
 
             // vamos verificar se o usuário é valido
-            $auth = new Auth();
-            if (!$auth->auth()) {
-                $auth->logout();
-                if (!$auth->login()) {
-                    Flight::unauthorized($auth->msg);
-                }
-            }
+            Auth::liberarAdmin();
 
             $ctrl = new $mgmt_class();
             if (empty($metodo)) {
@@ -57,19 +51,13 @@ class Rota
         // vamos mapear todas as rotas para o controller selecionado
         Flight::route('GET /@controlador:[a-z0-9]+(/@metodo:[a-z0-9]+(/@param1))', function ($controlador, $metodo, $param1) use ($controllers) {
 
-            // vamos verificar se o usuário é valido
-            $auth = new Auth();
-            if (!$auth->auth()) {
-                $auth->logout();
-                if (!$auth->login()) {
-                    Flight::unauthorized($auth->msg);
-                }
-            }
-
             // se o controlador passado nao existir
             if (empty($controllers[$controlador])) {
-                Flight::notFound('Controlador inexistente');
+                Flight::notFound('Caminho inexistente');
             }
+
+            // vamos verificar se o usuário é valido
+            Auth::liberar($controlador);
 
             // como o controlador existe, vamos instanciar
             $ctrl = new $controllers[$controlador];

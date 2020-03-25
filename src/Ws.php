@@ -37,33 +37,33 @@ class Ws
 
     public static function status()
     {
-        $out['colegiados'] = getenv('CODCLG');
+        $out['meu ip'] = $_SERVER['REMOTE_ADDR'];
+        $out['meu user'] = Auth::getUsuarioAtual();
+
         $c = new Cache();
         $out['cache'] = $c->status();
         
-        $out['meu ip'] = $_SERVER['REMOTE_ADDR'];
         $out['ip_control'] = Ipcontrol::status();
 
-        $auth = new Auth();
-        $out['usuarios'] = $auth->getUsers();
+        $out['usuarios'] = Auth::getUsuarios();
 
         return $out;
     }
 
     public static function login()
     {
-        $auth = new Auth();
-        if ($auth->login()) {
-            return ['msg' => $auth->msg];
-        } else {
-            \Flight::unauthorized($auth->msg);
-        }
+        // if (Auth::login()) {
+        //     //return ['msg' => $auth->msg];
+        //     return 'ok';
+        // } else {
+        //     \Flight::unauthorized('Acesso não autorizado');
+        // }
     }
 
     public static function logout()
     {
-        $auth = new Auth();
-        $auth->logout();
-        \Flight::unauthorized($auth->msg);
+        Auth::logout();
+        //\Flight::unauthorized($auth->msg);
+        \Flight::unauthorized('Você deve digitar um login e senha válidos para acessar este recurso');
     }
 }

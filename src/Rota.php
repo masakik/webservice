@@ -57,7 +57,7 @@ class Rota
             }
 
             // vamos verificar se o usuário é valido
-            Auth::liberar($controlador);
+            Auth::liberarUsuario($controlador);
 
             // como o controlador existe, vamos instanciar
             $ctrl = new $controllers[$controlador];

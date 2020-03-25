@@ -38,14 +38,14 @@ class Ws
     public static function status()
     {
         $out['meu ip'] = $_SERVER['REMOTE_ADDR'];
-        $out['meu user'] = Auth::getUsuarioAtual();
+        $out['meu user'] = Auth::obterUsuarioAtual();
 
         $c = new Cache();
         $out['cache'] = $c->status();
         
         $out['ip_control'] = Ipcontrol::status();
 
-        $out['usuarios'] = Auth::getUsuarios();
+        $out['usuarios'] = Auth::listarUsuarios();
 
         return $out;
     }

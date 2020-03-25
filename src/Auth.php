@@ -1,12 +1,10 @@
-<?php
-
-namespace Uspdev\Webservice;
+<?php namespace Uspdev\Webservice;
 
 class Auth
 {
-    public static function getUsuarios($pwdfile = '')
+    public static function listarUsuarios($pwdfile = '')
     {
-        $users = SELF::carregarUsuariosDoArquivo($pwdfile);
+        $users = SELF::carregaUsuariosDoArquivo($pwdfile);
         $ret = [];
         foreach ($users as $user => $prop) {
             $prop['pwd'] = 'shhh, não posso mostrar';
@@ -15,43 +13,49 @@ class Auth
         return $ret;
     }
 
-    public static function getUsuarioAtual()
+    public static function obterUsuarioAtual()
     {
         return empty($_SERVER['PHP_AUTH_USER']) ? 'anônimo' : $_SERVER['PHP_AUTH_USER'];
     }
 
-    public static function liberar($ctrl = 0)
+    public static function liberarUsuario($ctrl = 0)
     {
-        $users = SELF::carregarUsuariosDoArquivo();
-        if ($user = SELF::autenticarUsuarioSenha($users)) {
-            if (SELF::autenticarAdmin($user)) {
+        $users = SELF::carregaUsuariosDoArquivo();
+        if ($user = SELF::autenticaUsuarioSenha($users)) {
+            if (SELF::autenticaAdmin($user)) {
                 return true;
             }
-            if (empty($ctrl) || SELF::autenticarAllow($user, $ctrl)) {
+            if (empty($ctrl) || SELF::autenticaAllow($user, $ctrl)) {
                 return true;
             }
         }
 
         // vamos fazer o navegador enviar credenciais
         SELF::logout();
-        \Flight::unauthorized('Acesso não autorizado para ' . SELF::getUsuarioAtual());
+        \Flight::unauthorized('Acesso não autorizado para ' . SELF::obterUsuarioAtual());
     }
 
     public static function liberarAdmin()
     {
-        $users = SELF::carregarUsuariosDoArquivo();
-        if ($user = SELF::autenticarUsuarioSenha($users)) {
-            if (SELF::autenticarAdmin($user)) {
+        $users = SELF::carregaUsuariosDoArquivo();
+        if ($user = SELF::autenticaUsuarioSenha($users)) {
+            if (SELF::autenticaAdmin($user)) {
                 return true;
             }
         }
 
         // vamos fazer o navegador enviar credenciais
         SELF::logout();
-        \Flight::unauthorized('Acesso admin não autorizado para ' . SELF::getUsuarioAtual());
+        \Flight::unauthorized('Acesso admin não autorizado para ' . SELF::obterUsuarioAtual());
     }
 
-    private static function autenticarUsuarioSenha($users)
+    public static function logout()
+    {
+        // ao enviar este header o navegador vai solicitar novas credenciais
+        header('WWW-Authenticate: Basic realm="use this hash key to encode"');
+    }
+
+    private static function autenticaUsuarioSenha($users)
     {
         // se não houver usuário vamos negar acesso
         if (!isset($_SERVER['PHP_AUTH_USER'])) {
@@ -71,7 +75,7 @@ class Auth
         return $users[$user];
     }
 
-    private static function autenticarAllow($user, $ctrl)
+    private static function autenticaAllow($user, $ctrl)
     {
         // vamos permitir wildcard
         if ($user['allow'] == '*') {
@@ -86,12 +90,12 @@ class Auth
         }
     }
 
-    private static function autenticarAdmin($user)
+    private static function autenticaAdmin($user)
     {
         return ($user['admin'] == 1) ? true : false;
     }
 
-    private static function carregarUsuariosDoArquivo($pwdfile = '')
+    private static function carregaUsuariosDoArquivo($pwdfile = '')
     {
         $pwdfile = empty($pwdfile) ? getenv('USPDEV_WEBSERVICE_PWD_FILE') : $pwdfile;
         $users = [];
@@ -107,6 +111,17 @@ class Auth
             fclose($handle);
         }
         return $users;
+    }
+
+    private static function gravaUsuariosNoArquivo($users, $pwdfile = '')
+    {
+        $pwdfile = empty($pwdfile) ? getenv('USPDEV_WEBSERVICE_PWD_FILE') : $pwdfile;
+        if (($handle = fopen($pwdfile, 'w')) !== false) {
+            foreach ($users as $linha) {
+                fputcsv($handle, $linha, ':');
+            }
+            fclose($handle);
+        }
     }
 
     // public static function login()
@@ -135,10 +150,4 @@ class Auth
     //     //$this->msg = 'Usuário ou senha inválidos';
     //     return false;
     // }
-
-    public static function logout()
-    {
-        // ao enviar este header o navegador vai solicitar novas credenciais
-        header('WWW-Authenticate: Basic realm="use this hash key to encode"');
-    }
 }

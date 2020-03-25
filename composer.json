@@ -2,7 +2,7 @@
     "name": "uspdev/webservice",
     "description": "Biblioteca para criação de webservices rest",
     "type": "library",
-    "license": "GPL-V3",
+    "license": "GPL-3.0-or-later",
     "authors": [
         {
             "name": "Masaki Kawabata Neto",

@@ -55,7 +55,7 @@ class Auth
         header('WWW-Authenticate: Basic realm="use this hash key to encode"');
     }
 
-    private static function autenticaUsuarioSenha($users)
+    protected static function autenticaUsuarioSenha($users)
     {
         // se não houver usuário vamos negar acesso
         if (!isset($_SERVER['PHP_AUTH_USER'])) {
@@ -75,7 +75,7 @@ class Auth
         return $users[$user];
     }
 
-    private static function autenticaAllow($user, $ctrl)
+    protected static function autenticaAllow($user, $ctrl)
     {
         // vamos permitir wildcard
         if ($user['allow'] == '*') {
@@ -90,12 +90,12 @@ class Auth
         }
     }
 
-    private static function autenticaAdmin($user)
+    protected static function autenticaAdmin($user)
     {
         return ($user['admin'] == 1) ? true : false;
     }
 
-    private static function carregaUsuariosDoArquivo($pwdfile = '')
+    protected static function carregaUsuariosDoArquivo($pwdfile = '')
     {
         $pwdfile = empty($pwdfile) ? getenv('USPDEV_WEBSERVICE_PWD_FILE') : $pwdfile;
         $users = [];
@@ -113,11 +113,16 @@ class Auth
         return $users;
     }
 
-    private static function gravaUsuariosNoArquivo($users, $pwdfile = '')
+    protected static function gravaUsuariosNoArquivo($users, $pwdfile = '')
     {
         $pwdfile = empty($pwdfile) ? getenv('USPDEV_WEBSERVICE_PWD_FILE') : $pwdfile;
         if (($handle = fopen($pwdfile, 'w')) !== false) {
-            foreach ($users as $linha) {
+            foreach ($users as $user=>$attrib) {
+                $linha = [];
+                $linha[0] = $user;
+                foreach ($attrib as $val) {
+                    $linha[] = $val;
+                }
                 fputcsv($handle, $linha, ':');
             }
             fclose($handle);

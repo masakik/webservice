@@ -7,6 +7,7 @@ use Uspdev\Ipcontrol\Ipcontrol;
 // vamos carregar alguns dados para testes
 require_once __DIR__ . '/../mock_data.php';
 
+// vamos limitar o acesso por IP
 Ipcontrol::proteger();
 
 //Rota::raiz('mensagem');

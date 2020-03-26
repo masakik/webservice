@@ -36,7 +36,7 @@ class Rota
             $ctrl = new $mgmt_class();
             if (empty($metodo)) {
                 // se nao foi passado metodo vamos mostrar a lista de metodos publicos
-                $out = Ws::metodos($ctrl);
+                $out = SELF::metodos($ctrl);
             } else {
                 // se foi passado vamos chama-lo
                 $out = $ctrl->$metodo($param1);
@@ -62,9 +62,9 @@ class Rota
             // como o controlador existe, vamos instanciar
             $ctrl = new $controllers[$controlador];
 
-            // se nao foi passado metodo vamos mostrar a lista de metodos publicos
+            // se nao foi passado método vamos mostrar a lista de métodos públicos
             if (empty($metodo)) {
-                $out = Ws::metodos($ctrl);
+                $out = SELF::metodos($ctrl);
                 Flight::jsonf($out);
                 exit;
             }
@@ -97,6 +97,36 @@ class Rota
     {
         SELF::mapearFuncoes();
         Flight::start();
+    }
+
+    public static function metodos($obj)
+    {
+        $metodos = get_class_methods($obj);
+
+        $classe = get_class($obj);
+        if ($pos = strrpos($classe, '\\')) {
+            $classe = substr($classe, $pos + 1);
+        }
+        $classe = strtolower($classe);
+
+        foreach ($metodos as $m) {
+            // para cada método vamos obter os parâmetros
+            $r = new \ReflectionMethod($obj, $m);
+            $params = $r->getParameters();
+
+            // vamos listar somente os métodos publicos
+            if ($r->isPublic()) {
+                $p = '/';
+                foreach ($params as $param) {
+                    $p .= '{' . $param->getName() . '}, ';
+                }
+                $p = substr($p, 0, -2);
+
+                // vamos apresentar na forma de url
+                $api[$m] = getenv('DOMINIO') . '/' . $classe . '/' . $m . $p;
+            }
+        }
+        return $api;
     }
 
     private static function mapearFuncoes()

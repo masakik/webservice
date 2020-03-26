@@ -15,14 +15,15 @@ class Ws
         
         $out['ip_control'] = Ipcontrol::status();
 
-        $out['usuarios'] = Auth::listarUsuarios();
+        $users = Auth::listarUsuarios();
+        $out['usuarios']['total'] = count($users);
+        $out['usuarios']['url'] = getenv('DOMINIO').'/'.getenv('USPDEV_WEBSERVICE_MGMT_ROUTE').'/users';
 
         return $out;
     }
 
     public static function users() {
         return Auth::listarUsuarios();
-
     }
 
     public static function login()

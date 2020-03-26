@@ -1,17 +1,7 @@
 <?php
+// vamos gerar dados de exemplo para poder rodar os testes e demos
 
 use Uspdev\Webservice\Auth;
-
-// sem cache nos testes
-putenv('USPDEV_CACHE_DISABLE=1');
-
-putenv('USPDEV_IP_CONTROL=localhost');
-
-// O dominio vamos tentar adivinhar
-putenv('DOMINIO=http://' . $_SERVER['HTTP_HOST'] . Flight::request()->base); # sem / no final
-
-// local onde o webservice colocará arquivos sqlite, logs, etc.
-putenv('USPDEV_WEBSERVICE_LOCAL=' . __DIR__ );
 
 // gerar usuarios
 Auth::salvarUsuario(['username'=>'admin', 'pwd'=>'admin', 'admin'=>'1', 'allow'=>'']);

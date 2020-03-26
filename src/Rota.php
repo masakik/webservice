@@ -21,18 +21,17 @@ class Rota
         });
     }
 
-    public static function admin($mgmt_route = '', $mgmt_class = '')
+    public static function admin()
     {
-        // valores padrão
-        $mgmt_route = empty($mgmt_route) ? 'ws' : $mgmt_route;
-        $mgmt_class = empty($mgmt_class) ? 'Uspdev\Webservice\Ws' : $mgmt_class;
-
         // vamos criar as rotas específicas de admininistação do webservice
-        Flight::route('GET /' . $mgmt_route . '(/@metodo:[a-z]+(/@param1))', function ($metodo, $param1) use ($mgmt_class) {
+
+        $mgmt_route = getenv('USPDEV_WEBSERVICE_MGMT_ROUTE');
+        Flight::route('GET /' . $mgmt_route . '(/@metodo:[a-z]+(/@param1))', function ($metodo, $param1) {
 
             // vamos verificar se o usuário é valido
             Auth::liberarAdmin();
 
+            $mgmt_class = getenv('USPDEV_WEBSERVICE_MGMT_CLASS');
             $ctrl = new $mgmt_class();
             if (empty($metodo)) {
                 // se nao foi passado metodo vamos mostrar a lista de metodos publicos
@@ -48,7 +47,7 @@ class Rota
 
     public static function controladorMetodo($controllers)
     {
-        // vamos mapear todas as rotas para o controller selecionado
+        // vamos mapear todas as rotas para o controller selecionado, similar ao codeigniter
         Flight::route('GET /@controlador:[a-z0-9]+(/@metodo:[a-z0-9]+(/@param1))', function ($controlador, $metodo, $param1) use ($controllers) {
 
             // se o controlador passado nao existir

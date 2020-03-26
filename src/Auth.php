@@ -23,7 +23,7 @@ class Auth
         R::hunt('usuario', 'username = ?', [$user['username']]);
     }
 
-    public static function listarUsuarios($pwdfile = '')
+    public static function listarUsuarios()
     {
         SELF::abreDB();
         $users = R::exportAll(R::findAll('usuario'));
@@ -117,7 +117,6 @@ class Auth
 
     protected static function abreDB()
     {
-        //echo 'sqlite:' . getenv('USPDEV_WEBSERVICE_LOCAL') . '/Auth.db3';
         if (!R::testConnection()) {
             R::setup('sqlite:' . getenv('USPDEV_WEBSERVICE_LOCAL') . '/Auth.db3');
         }

@@ -1,4 +1,0 @@
-admin:$2y$10$dAgW4ABRJGand2jwJq.8X.eEeCbhGz5zwpaDMF3zCTo4qJwaZ3QWK:1:
-user1:$2y$10$bMk5q6Fd4N67.5wJspF.Qe3oi0LkmuXfkhYYBqn/V8AQyVqy9KYtq::minhaclasse1
-user2:$2y$10$gwSG8uZb5WUUMn5Lui5I1ecDTQojtUpXNr7ZNbUMebV5gwSyJ58QC::"minhaclasse1, minhaclasse2"
-user3:$2y$10$50hX.do6Rk4Dc1sY/BCw9OCPOONQ3XAw4RIdktwQQ1tVu77otCozG::*

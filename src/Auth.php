@@ -20,8 +20,7 @@ class Auth
 
     public static function liberarUsuario($ctrl = 0)
     {
-        $users = SELF::carregaUsuariosDoArquivo();
-        if ($user = SELF::autenticaUsuarioSenha($users)) {
+        if ($user = SELF::autenticaUsuarioSenha()) {
             if (SELF::autenticaAdmin($user)) {
                 return true;
             }
@@ -37,8 +36,7 @@ class Auth
 
     public static function liberarAdmin()
     {
-        $users = SELF::carregaUsuariosDoArquivo();
-        if ($user = SELF::autenticaUsuarioSenha($users)) {
+        if ($user = SELF::autenticaUsuarioSenha()) {
             if (SELF::autenticaAdmin($user)) {
                 return true;
             }
@@ -60,7 +58,7 @@ class Auth
 
     }
 
-    protected static function autenticaUsuarioSenha($users)
+    protected static function autenticaUsuarioSenha()
     {
         // se não houver usuário vamos negar acesso
         if (!isset($_SERVER['PHP_AUTH_USER'])) {
@@ -70,7 +68,7 @@ class Auth
         $auth_user = $_SERVER['PHP_AUTH_USER'];
         $auth_pwd = $_SERVER['PHP_AUTH_PW'];
 
-        if ($user = SELF::encontrarUsuario($auth_user)) {
+        if ($user = SELF::encontraUsuario($auth_user)) {
             if (password_verify($auth_pwd, $user['pwd'])) {
                 return $user;
             }
@@ -78,10 +76,10 @@ class Auth
         return false;
     }
 
-    public static function encontrarUsuario($username)
+    protected static function encontraUsuario($username)
     {
         // username:password:admin:classes
-        $users = SELF::carregaUsuariosDoArquivo2();
+        $users = SELF::carregaUsuariosDoArquivo();
         $key = array_search($username, array_column($users, 'username'));
         if ($key !== false) {
             return $users[$key];
@@ -109,7 +107,7 @@ class Auth
         return ($user['admin'] == 1) ? true : false;
     }
 
-    public static function carregaUsuariosDoArquivo2($pwdfile = '')
+    protected static function carregaUsuariosDoArquivo($pwdfile = '')
     {
         $pwdfile = empty($pwdfile) ? getenv('USPDEV_WEBSERVICE_PWD_FILE') : $pwdfile;
         $users = [];
@@ -121,24 +119,6 @@ class Auth
                 $user['admin'] = $linha[2];
                 $user['allow'] = $linha[3];
                 $users[] = $user;
-            }
-            fclose($handle);
-        }
-        return $users;
-    }
-
-    protected static function carregaUsuariosDoArquivo($pwdfile = '')
-    {
-        $pwdfile = empty($pwdfile) ? getenv('USPDEV_WEBSERVICE_PWD_FILE') : $pwdfile;
-        $users = [];
-        // vamos ler o arquivo de senhas
-        if (($handle = fopen($pwdfile, 'r')) !== false) {
-            while (($linha = fgetcsv($handle, 1000, ':')) !== false) {
-                $users[$linha[0]] = [
-                    'pwd' => $linha[1],
-                    'admin' => $linha[2],
-                    'allow' => empty($linha[3]) ? 0 : $linha[3],
-                ];
             }
             fclose($handle);
         }
@@ -160,31 +140,4 @@ class Auth
             fclose($handle);
         }
     }
-
-    // public static function login()
-    // {
-    //     header('Access-Control-Allow-Origin: *');
-    //     header('Access-Control-Allow-Methods: GET, POST, OPTIONS');
-    //     header('Access-Control-Allow-Headers: authorization');
-
-    //     if (isset($_SERVER['HTTP_ACCESS_CONTROL_REQUEST_HEADERS'])) {
-    //         //$this->msg = 'OK';
-    //         return true;
-    //     }
-
-    //     if (!isset($_SERVER['PHP_AUTH_USER'])) {
-    //         header('WWW-Authenticate: Basic realm="use this hash key to encode"');
-    //         //header('HTTP/1.0 401 Unauthorized');
-    //         //$this->msg = 'Você deve digitar um login e senha válidos para acessar este recurso';
-    //         return false;
-    //     }
-
-    //     if (SELF::liberar()) {
-    //         //$this->msg = 'Login com successo';
-    //         return true;
-    //     }
-
-    //     //$this->msg = 'Usuário ou senha inválidos';
-    //     return false;
-    // }
 }

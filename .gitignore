@@ -1,6 +1,4 @@
 
 /vendor/
-/test/users.txt
-/test/users2.txt
-/test/users1.txt
+/test/Auth.db3
 /sandbox/

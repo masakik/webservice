@@ -10,9 +10,11 @@
         }
     ],
     "require": {
+        "ext-sqlite3": "*",
         "mikecao/flight": "^1.3",
         "uspdev/ip-control": "*",
-        "uspdev/cache": "*"
+        "uspdev/cache": "*",
+        "gabordemooij/redbean": "^5.4"
     },
     "autoload" : {
 		"psr-4" : {

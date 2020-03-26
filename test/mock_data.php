@@ -1,5 +1,6 @@
 <?php
 
+use Uspdev\Webservice\Auth;
 // sem cache nos testes
 putenv('USPDEV_CACHE_DISABLE=1');
 
@@ -10,16 +11,12 @@ putenv('DOMINIO=http://' . $_SERVER['HTTP_HOST'] . Flight::request()->base); # s
 
 // gerar usuarios
 putenv('USPDEV_WEBSERVICE_PWD_FILE=' . __DIR__ . '/users.txt');
-$users[] = ['admin', password_hash('admin', PASSWORD_DEFAULT), '1', ''];
-$users[] = ['user1', password_hash('user', PASSWORD_DEFAULT), '', 'minhaclasse1'];
-$users[] = ['user2', password_hash('user', PASSWORD_DEFAULT), '', 'minhaclasse1, minhaclasse2'];
-$users[] = ['user3', password_hash('user', PASSWORD_DEFAULT), '', '*'];
-//print_r($users);exit;
-$fp = fopen(getenv('USPDEV_WEBSERVICE_PWD_FILE'), 'w');
-foreach ($users as $linha) {
-    fputcsv($fp, $linha, ':');
-}
-fclose($fp);
+putenv('USPDEV_WEBSERVICE_LOCAL=' . __DIR__ );
+
+Auth::salvarUsuario(['username'=>'admin', 'pwd'=>'admin', 'admin'=>'1', 'allow'=>'']);
+Auth::salvarUsuario(['username'=>'gerente', 'pwd'=>'gerente', 'admin'=>'0', 'allow'=>'*']);
+Auth::salvarUsuario(['username'=>'user1', 'pwd'=>'user', 'admin'=>'', 'allow'=>'minhaclasse1']);
+Auth::salvarUsuario(['username'=>'user2', 'pwd'=>'user', 'admin'=>'', 'allow'=>'minhaclasse1, minhaclasse2']);
 
 // controlador teste com algumas classes
 $controllers['minhaclasse1'] = 'Minhaclasse1'; //'Uspdev\Evasao\Evasao';

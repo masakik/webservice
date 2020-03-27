@@ -21,6 +21,7 @@ putenv('USPDEV_WEBSERVICE_MGMT_ROUTE=ws');
 putenv('USPDEV_WEBSERVICE_MGMT_CLASS=Uspdev\Webservice\Ws');
 
 // ----------------------------
+
 // vamos carregar alguns dados para testes
 require_once __DIR__ . '/../mock_data.php';
 

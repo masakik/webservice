@@ -1,5 +1,11 @@
 <?php
-require_once __DIR__ . '/../../vendor/autoload.php';
+if (is_file('/../../vendor/autoload.php')) {
+    // clonou o git e rodou composer install
+    require_once __DIR__ . '/../../vendor/autoload.php';
+} else {
+    // instalou via composer
+    require_once __DIR__ . '/../../../../../vendor/autoload.php';
+}
 
 use Uspdev\Ipcontrol\Ipcontrol;
 use Uspdev\Webservice\Rota;
@@ -16,7 +22,7 @@ putenv('DOMINIO=http://' . $_SERVER['HTTP_HOST'] . Flight::request()->base); # s
 // local onde o webservice colocará arquivos sqlite, logs, etc.
 putenv('USPDEV_WEBSERVICE_LOCAL=' . __DIR__ . '/..');
 
-// solicita o navegador as credenciais do usuário. Default 0
+// faz o navegador solicitar as credenciais do usuário. Default 0
 putenv('USPDEV_WEBSERVICE_USER_FRIENDLY=1');
 
 // Rota para admin. Default 'ws'

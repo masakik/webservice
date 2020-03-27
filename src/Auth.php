@@ -4,6 +4,7 @@ use \RedBeanPHP\R as DB;
 
 class Auth
 {
+    // arquivo onde será guardado a base de usuários
     const auth_file = 'uspdev_webservice_auth.db3';
 
     public static function salvarUsuario($user_novo)

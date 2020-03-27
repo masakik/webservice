@@ -17,12 +17,12 @@ class Ws
 
         $users = Auth::listarUsuarios();
         $out['usuarios']['total'] = count($users);
-        $out['usuarios']['url'] = getenv('DOMINIO').'/'.getenv('USPDEV_WEBSERVICE_MGMT_ROUTE').'/users';
+        $out['usuarios']['url'] = getenv('DOMINIO').'/'.getenv('USPDEV_WEBSERVICE_MGMT_ROUTE').'/auth';
 
         return $out;
     }
 
-    public static function users() {
+    public static function auth() {
         return Auth::listarUsuarios();
     }
 

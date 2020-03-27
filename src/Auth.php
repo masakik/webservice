@@ -1,32 +1,38 @@
 <?php namespace Uspdev\Webservice;
 
-use \RedBeanPHP\R;
+use \RedBeanPHP\R as DB;
 
 class Auth
 {
+    const auth_file = 'uspdev_webservice_auth.db3';
+
     public static function salvarUsuario($user_novo)
     {
         SELF::abreDB();
-        $user = R::findOrCreate('usuario', [
+        $user = DB::findOrCreate('usuario', [
             'username' => $user_novo['username'],
         ]);
         $user->import($user_novo, 'admin,allow');
         if (!empty($user_novo['pwd'])) {
             $user->pwd = password_hash($user_novo['pwd'], PASSWORD_DEFAULT);
         }
-        R::store($user);
+        DB::store($user);
+        SELF::fechaDB();
     }
 
     public static function removerUsuario($user)
     {
         SELF::abreDB();
-        R::hunt('usuario', 'username = ?', [$user['username']]);
+        DB::hunt('usuario', 'username = ?', [$user['username']]);
+        SELF::fechaDB();
     }
 
     public static function listarUsuarios()
     {
         SELF::abreDB();
-        $users = R::exportAll(R::findAll('usuario'));
+        $users = DB::exportAll(DB::findAll('usuario'));
+        SELF::fechaDB();
+        
         $ret = [];
         foreach ($users as $user) {
             unset($user['id']);
@@ -56,16 +62,13 @@ class Auth
                         return true;
                     }
                     break;
+                case 'admin':
+                    // aqui não precisa fazer nada
+                    break;
             }
         }
 
         return false;
-
-    }
-
-    public static function liberarAdmin()
-    {
-
     }
 
     public static function logout()
@@ -85,7 +88,10 @@ class Auth
         $auth_pwd = $_SERVER['PHP_AUTH_PW'];
 
         SELF::abreDB();
-        if ($user = R::findOne('usuario', ' username = ? ', [$auth_user])) {
+        $user = DB::findOne('usuario', ' username = ? ', [$auth_user]);
+        SELF::fechaDB();
+
+        if ($user) {
             if (password_verify($auth_pwd, $user->pwd)) {
                 return $user;
             }
@@ -115,8 +121,17 @@ class Auth
 
     protected static function abreDB()
     {
-        if (!R::testConnection()) {
-            R::setup('sqlite:' . getenv('USPDEV_WEBSERVICE_LOCAL') . '/Auth.db3');
+        if (!DB::testConnection()) {
+            DB::addDatabase('webservice_auth', 'sqlite:' . getenv('USPDEV_WEBSERVICE_LOCAL') . '/' . SELF::auth_file);
+            DB::selectDatabase('webservice_auth');
+            DB::useFeatureSet( 'novice/latest' );
+            DB::freeze(true);
         }
+        DB::selectDatabase('webservice_auth');
+    }
+
+    protected static function fechaDB()
+    {
+        DB::close();
     }
 }

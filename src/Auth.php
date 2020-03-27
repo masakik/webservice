@@ -41,33 +41,31 @@ class Auth
         return empty($_SERVER['PHP_AUTH_USER']) ? 'anônimo' : $_SERVER['PHP_AUTH_USER'];
     }
 
-    public static function liberarUsuario($ctrl = 0)
+    public static function liberar($escopo = 'usuario', $ctrl = 0)
     {
         if ($user = SELF::autenticaUsuarioSenha()) {
+
+            // se for admin já libera sem verificar escopo
             if (SELF::autenticaAdmin($user)) {
                 return true;
             }
-            if (empty($ctrl) || SELF::autenticaAllow($user, $ctrl)) {
-                return true;
+
+            switch ($escopo) {
+                case 'usuario':
+                    if (empty($ctrl) || SELF::autenticaAllow($user, $ctrl)) {
+                        return true;
+                    }
+                    break;
             }
         }
 
-        // vamos fazer o navegador enviar credenciais
-        SELF::logout();
-        \Flight::unauthorized('Acesso não autorizado para ' . SELF::obterUsuarioAtual());
+        return false;
+
     }
 
     public static function liberarAdmin()
     {
-        if ($user = SELF::autenticaUsuarioSenha()) {
-            if (SELF::autenticaAdmin($user)) {
-                return true;
-            }
-        }
 
-        // vamos fazer o navegador enviar credenciais
-        SELF::logout();
-        \Flight::unauthorized('Acesso admin não autorizado para ' . SELF::obterUsuarioAtual());
     }
 
     public static function logout()

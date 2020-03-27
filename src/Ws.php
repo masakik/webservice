@@ -9,7 +9,12 @@ class Ws
     {
         $out['meu ip'] = $_SERVER['REMOTE_ADDR'];
         $out['meu user'] = Auth::obterUsuarioAtual();
+        
+        $amb['local'] = getenv('USPDEV_WEBSERVICE_LOCAL');
+        $amb['admin_route'] = getenv('USPDEV_WEBSERVICE_ADMIN_ROUTE');
+        $amb['user_friendly'] = getenv('USPDEV_WEBSERVICE_USER_FRIENDLY');
 
+        $out['ambiente'] = $amb;
         $c = new Cache();
         $out['cache'] = $c->status();
         
@@ -17,7 +22,7 @@ class Ws
 
         $users = Auth::listarUsuarios();
         $out['usuarios']['total'] = count($users);
-        $out['usuarios']['url'] = getenv('DOMINIO').'/'.getenv('USPDEV_WEBSERVICE_MGMT_ROUTE').'/auth';
+        $out['usuarios']['url'] = getenv('DOMINIO').'/'.getenv('USPDEV_WEBSERVICE_ADMIN_ROUTE').'/auth';
 
         return $out;
     }

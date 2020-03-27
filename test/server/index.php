@@ -10,15 +10,17 @@ putenv('USPDEV_CACHE_DISABLE=1');
 // Vamos limitar o acesso à máquina local
 putenv('USPDEV_IP_CONTROL=localhost');
 
-// local onde o webservice colocará arquivos sqlite, logs, etc.
-putenv('USPDEV_WEBSERVICE_LOCAL=' . __DIR__ . '/..');
-
 // O dominio vamos tentar adivinhar
 putenv('DOMINIO=http://' . $_SERVER['HTTP_HOST'] . Flight::request()->base); # sem / no final
 
-// Rota e classe padrão para admin
-putenv('USPDEV_WEBSERVICE_MGMT_ROUTE=ws');
-putenv('USPDEV_WEBSERVICE_MGMT_CLASS=Uspdev\Webservice\Ws');
+// local onde o webservice colocará arquivos sqlite, logs, etc.
+putenv('USPDEV_WEBSERVICE_LOCAL=' . __DIR__ . '/..');
+
+// solicita o navegador as credenciais do usuário. Default 0
+putenv('USPDEV_WEBSERVICE_USER_FRIENDLY=1');
+
+// Rota para admin. Default 'ws'
+putenv('USPDEV_WEBSERVICE_ADMIN_ROUTE=ws');
 
 // ----------------------------
 

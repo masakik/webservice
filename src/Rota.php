@@ -5,6 +5,26 @@ use \Flight;
 
 class Rota
 {
+    # valores padrão para variáveis de ambiente
+    const user_friendly = 0;
+    const admin_route = 'ws';
+
+    # classe para rota de admin
+    const admin_class = 'Uspdev\Webservice\Ws';
+
+    protected static function liberar($escopo = 'usuario', $allow = 0)
+    {
+        if ($auth = Auth::liberar($escopo, $allow)) {
+            return true;
+        } else {
+        
+            // para negar acesso, vamos ler se é user_friendly
+            getenv('USPDEV_WEBSERVICE_USER_FRIENDLY') && Auth::logout();
+
+            Flight::unauthorized('Acesso ' . $escopo . ' não autorizado para ' . Auth::obterUsuarioAtual());
+        }
+    }
+
     public static function raiz($controllers = '')
     {
         Flight::route('/', function () use ($controllers) {
@@ -17,22 +37,22 @@ class Rota
                 $out['msg'] = $controllers;
             }
             Flight::jsonf($out);
-
         });
     }
 
+    // vamos criar as rotas específicas de admininistação do webservice
     public static function admin()
     {
-        // vamos criar as rotas específicas de admininistação do webservice
 
-        $mgmt_route = getenv('USPDEV_WEBSERVICE_MGMT_ROUTE');
-        Flight::route('GET /' . $mgmt_route . '(/@metodo:[a-z]+(/@param1))', function ($metodo, $param1) {
+        $admin_route = getenv('USPDEV_WEBSERVICE_ADMIN_ROUTE');
+
+        Flight::route('GET /' . $admin_route . '(/@metodo:[a-z]+(/@param1))', function ($metodo, $param1) {
 
             // vamos verificar se o usuário é valido
-            Auth::liberarAdmin();
+            SELF::liberar('admin');
 
-            $mgmt_class = getenv('USPDEV_WEBSERVICE_MGMT_CLASS');
-            $ctrl = new $mgmt_class();
+            $admin_class = SELF::admin_class;
+            $ctrl = new $admin_class();
             if (empty($metodo)) {
                 // se nao foi passado metodo vamos mostrar a lista de metodos publicos
                 $out = SELF::metodos($ctrl);
@@ -41,7 +61,6 @@ class Rota
                 $out = $ctrl->$metodo($param1);
             }
             Flight::jsonf($out);
-
         });
     }
 
@@ -56,7 +75,7 @@ class Rota
             }
 
             // vamos verificar se o usuário é valido
-            Auth::liberarUsuario($controlador);
+            SELF::liberar('usuario', $controlador);
 
             // como o controlador existe, vamos instanciar
             $ctrl = new $controllers[$controlador];
@@ -94,6 +113,15 @@ class Rota
 
     public static function iniciar()
     {
+        // vamos configurar o ambiente com valores padrão se necessário
+        if (empty(getenv('USPDEV_WEBSERVICE_USER_FRIENDLY'))) {
+            putenv('USPDEV_WEBSERVICE_USER_FRIENDLY=' . SELF::user_friendly);
+        }
+
+        if (empty(getenv('USPDEV_WEBSERVICE_ADMIN_ROUTE'))) {
+            putenv('USPDEV_WEBSERVICE_ADMIN_ROUTE=' . SELF::admin_route);
+        }
+
         SELF::mapearFuncoes();
         Flight::start();
     }

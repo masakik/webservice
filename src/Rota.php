@@ -102,8 +102,24 @@ class Rota
 
             // vamos contar quantos parametros devem ser passados
             $r = new \ReflectionMethod($ctrl, $metodo);
+            $param_allowed = $r->getNumberOfParameters();
+            $param_required = $r->getNumberOfRequiredParameters();
+
+            //vamos contar quantos parametros foram passados
+            $param_passed = 3;
+            $param_passed = empty($param3) ? 2 : $param_passed;
+            $param_passed = empty($param2) ? 1 : $param_passed;
+            $param_passed = empty($param1) ? 0 : $param_passed;
+
+            // se a quantidade de parametros for insuficiente vamos abortar com uma mensagem
+            if ($param_passed < $param_required) {
+                Flight::jsonf('Parâmetros insuficientes');
+                exit;
+            }
+
+            // vamos criar o array de parâmetros
             $param = [];
-            for ($i = 1; $i <= $r->getNumberOfParameters(); $i++) {
+            for ($i = 1; $i <= $param_allowed; $i++) {
                 $str = 'param' . $i;
                 $param[] = $$str;
             }

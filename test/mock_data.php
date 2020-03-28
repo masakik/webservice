@@ -4,19 +4,19 @@
 use Uspdev\Webservice\Auth;
 
 // gerar usuarios
-Auth::salvarUsuario(['username'=>'admin', 'pwd'=>'admin', 'admin'=>'1', 'allow'=>'']);
-Auth::salvarUsuario(['username'=>'gerente', 'pwd'=>'gerente', 'admin'=>'0', 'allow'=>'*']);
-Auth::salvarUsuario(['username'=>'user1', 'pwd'=>'user', 'admin'=>'', 'allow'=>'minhaclasse1']);
-Auth::salvarUsuario(['username'=>'user2', 'pwd'=>'user', 'admin'=>'', 'allow'=>'minhaclasse1, minhaclasse2']);
+Auth::salvarUsuario(['username' => 'admin', 'pwd' => 'admin', 'admin' => '1', 'allow' => '']);
+Auth::salvarUsuario(['username' => 'gerente', 'pwd' => 'gerente', 'admin' => '0', 'allow' => '*']);
+Auth::salvarUsuario(['username' => 'user1', 'pwd' => 'user', 'admin' => '', 'allow' => 'minhaclasse1']);
+Auth::salvarUsuario(['username' => 'user2', 'pwd' => 'user', 'admin' => '', 'allow' => 'minhaclasse1, minhaclasse2']);
 
 // controlador teste com algumas classes
 $controllers['minhaclasse1'] = 'Minhaclasse1'; //'Uspdev\Evasao\Evasao';
 
 class Minhaclasse1
 {
-    public static function meuMetodo1($param = '')
+    public static function meuMetodo1($param1, $param2 = '')
     {
-        return 'Este é o resultado do metodo 1 com o parametro ' . $param;
+        return 'Este é o resultado do metodo 1 com os parametros ' . $param1 . ' e ' . $param2;
     }
 
     public static function meuMetodo2()

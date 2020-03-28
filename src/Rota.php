@@ -74,7 +74,8 @@ class Rota
     public static function controladorMetodo($controllers)
     {
         // vamos mapear todas as rotas para o controller selecionado, similar ao codeigniter
-        Flight::route('GET /@controlador:[a-z0-9]+(/@metodo:[a-z0-9]+(/@param1))', function ($controlador, $metodo, $param1) use ($controllers) {
+        // pode usar até 3 parametros
+        Flight::route('/@controlador:[a-z0-9]+(/@metodo:[a-z0-9]+(/@param1(/@param2(/@param3))))', function ($controlador, $metodo, $param1, $param2, $param3) use ($controllers) {
 
             // se o controlador passado nao existir
             if (empty($controllers[$controlador])) {
@@ -99,9 +100,18 @@ class Rota
                 Flight::notFound('Metodo inexistente');
             }
 
+            // vamos contar quantos parametros devem ser passados
+            $r = new \ReflectionMethod($ctrl, $metodo);
+            $param = [];
+            for ($i = 1; $i <= $r->getNumberOfParameters(); $i++) {
+                $str = 'param' . $i;
+                $param[] = $$str;
+            }
+            //print_r($param);exit;
+
             // agora que está tudo certo vamos fazer a chamada usando cache
             $c = new Cache($ctrl);
-            $out = $c->getCached($metodo, [$param1]);
+            $out = $c->getCached($metodo, $param);
 
             // vamos formatar a saída de acordo com format=?
             $f = Flight::request()->query['format'];

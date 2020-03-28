@@ -1,5 +1,5 @@
 <?php
-if (is_file('/../../vendor/autoload.php')) {
+if (is_file(__DIR__.'/../../vendor/autoload.php')) {
     // clonou o git e rodou composer install
     require_once __DIR__ . '/../../vendor/autoload.php';
 } else {

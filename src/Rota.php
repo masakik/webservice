@@ -178,9 +178,10 @@ class Rota
             if ($r->isPublic()) {
                 $p = '/';
                 foreach ($params as $param) {
-                    $p .= '{' . $param->getName() . '}, ';
+                    $o = $param->isOptional() ? '(opt)' : '';
+                    $p .= '{' . $param->getName() . $o . '}/';
                 }
-                $p = substr($p, 0, -2);
+                $p = substr($p, 0, -1);
 
                 // vamos apresentar na forma de url
                 $api[$m] = getenv('DOMINIO') . '/' . $classe . '/' . $m . $p;

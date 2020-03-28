@@ -17,7 +17,7 @@ class Rota
         if ($auth = Auth::liberar($escopo, $allow)) {
             return true;
         } else {
-        
+
             // para negar acesso, vamos ler se é user_friendly
             getenv('USPDEV_WEBSERVICE_USER_FRIENDLY') && Auth::logout();
 
@@ -53,13 +53,20 @@ class Rota
 
             $admin_class = SELF::admin_class;
             $ctrl = new $admin_class();
+
+            // se nao foi passado método vamos mostrar a lista de métodos públicos
             if (empty($metodo)) {
-                // se nao foi passado metodo vamos mostrar a lista de metodos publicos
                 $out = SELF::metodos($ctrl);
-            } else {
-                // se foi passado vamos chama-lo
-                $out = $ctrl->$metodo($param1);
+                Flight::jsonf($out);
+                exit;
             }
+
+            // se o método não existe vamos abortar
+            if (!method_exists($ctrl, $metodo)) {
+                Flight::notFound('Metodo inexistente');
+            }
+
+            $out = $ctrl->$metodo($param1);
             Flight::jsonf($out);
         });
     }

@@ -1,5 +1,5 @@
 <?php
-if (is_file(__DIR__.'/../../vendor/autoload.php')) {
+if (is_file(__DIR__ . '/../../vendor/autoload.php')) {
     // clonou o git e rodou composer install
     require_once __DIR__ . '/../../vendor/autoload.php';
 } else {
@@ -8,7 +8,7 @@ if (is_file(__DIR__.'/../../vendor/autoload.php')) {
 }
 
 use Uspdev\Ipcontrol\Ipcontrol;
-use Uspdev\Webservice\Rota;
+use Uspdev\Webservice\Webservice as WS;
 
 // sem cache nos testes
 putenv('USPDEV_CACHE_DISABLE=1');
@@ -36,13 +36,23 @@ require_once __DIR__ . '/../mock_data.php';
 // vamos limitar o acesso por IP
 Ipcontrol::proteger();
 
+
+$controllers['minhaclasse2'] = 'Minhaclasse2';
+$controllers['run'] = 'Minhaclasse1::meumetodo1';
 //Rota::raiz('mensagem');
-Rota::raiz($controllers);
+WS::raiz($controllers);
+
+WS::rota(['run', 'Minhaclasse1::meumetodo1']);
+// Flight::route('/run(/@param1)', function($param1) {
+//     $out = Minhaclasse1::meumetodo1($param1);
+//     Flight::json($out);
+// });
+
 
 # Controlador de gerencia do webservice (opcional)
-Rota::admin();
+WS::admin();
 
 // aqui chamamos como http://servidor/controlador/metodo/parametro
-Rota::controladorMetodo($controllers);
+//WS::controladorMetodo($controllers);
 
-Rota::iniciar();
+WS::iniciar();

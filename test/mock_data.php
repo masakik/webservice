@@ -10,13 +10,14 @@ Auth::salvarUsuario(['username' => 'user1', 'pwd' => 'user', 'admin' => '', 'all
 Auth::salvarUsuario(['username' => 'user2', 'pwd' => 'user', 'admin' => '', 'allow' => 'minhaclasse1, minhaclasse2']);
 
 // controlador teste com algumas classes
-$controllers['minhaclasse1'] = 'Minhaclasse1'; //'Uspdev\Evasao\Evasao';
+$controllers['minhaclasse1'] = 'Minhaclasse1';
 
 class Minhaclasse1
 {
     public static function meuMetodo1($param1, $param2 = '')
     {
         return 'Este é o resultado do metodo 1 com os parametros ' . $param1 . ' e ' . $param2;
+        return ['msg'=>'Este é o resultado do metodo 1 com os parametros ' . $param1 . ' e ' . $param2];
     }
 
     public static function meuMetodo2()
@@ -25,7 +26,7 @@ class Minhaclasse1
     }
 }
 
-$controllers['minhaclasse2'] = 'Minhaclasse2'; //'Uspdev\Evasao\Evasao';
+$controllers['minhaclasse2'] = 'Minhaclasse2';
 
 class Minhaclasse2
 {

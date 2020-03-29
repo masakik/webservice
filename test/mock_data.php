@@ -6,11 +6,8 @@ use Uspdev\Webservice\Auth;
 // gerar usuarios
 Auth::salvarUsuario(['username' => 'admin', 'pwd' => 'admin', 'admin' => '1', 'allow' => '']);
 Auth::salvarUsuario(['username' => 'gerente', 'pwd' => 'gerente', 'admin' => '0', 'allow' => '*']);
-Auth::salvarUsuario(['username' => 'user1', 'pwd' => 'user', 'admin' => '', 'allow' => 'minhaclasse1']);
-Auth::salvarUsuario(['username' => 'user2', 'pwd' => 'user', 'admin' => '', 'allow' => 'minhaclasse1, minhaclasse2']);
-
-// controlador teste com algumas classes
-$controllers['minhaclasse1'] = 'Minhaclasse1';
+Auth::salvarUsuario(['username' => 'user1', 'pwd' => 'user', 'admin' => '', 'allow' => 'rota1']);
+Auth::salvarUsuario(['username' => 'user2', 'pwd' => 'user', 'admin' => '', 'allow' => 'rota1, rota2, rota3']);
 
 class Minhaclasse1
 {
@@ -25,8 +22,6 @@ class Minhaclasse1
         return 'Este é o resultado do metodo 2 que não aceita parametros';
     }
 }
-
-$controllers['minhaclasse2'] = 'Minhaclasse2';
 
 class Minhaclasse2
 {

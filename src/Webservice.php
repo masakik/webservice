@@ -17,7 +17,6 @@ class Webservice
         if ($auth = Auth::liberar($escopo, $allow)) {
             return true;
         } else {
-
             // para negar acesso, vamos ler se é user_friendly
             getenv('USPDEV_WEBSERVICE_USER_FRIENDLY') && Auth::logout();
 
@@ -43,92 +42,103 @@ class Webservice
     // vamos criar as rotas específicas de admininistação do webservice
     public static function admin()
     {
+        $rota = getenv('USPDEV_WEBSERVICE_ADMIN_ROUTE');
 
-        $admin_route = getenv('USPDEV_WEBSERVICE_ADMIN_ROUTE');
-
-        Flight::route('GET /' . $admin_route . '(/@metodo:[a-z]+(/@param1))', function ($metodo, $param1) {
+        Flight::route('GET /' . $rota . '(/@metodo:[a-z]+(/@param1))', function ($metodo, $param1) use ($rota) {
 
             // vamos verificar se o usuário é valido
             SELF::liberar('admin');
 
-            $admin_class = SELF::admin_class;
-            $ctrl = new $admin_class();
+            // a classe admin é uma constante
+            $classe = SELF::admin_class;
 
             // se nao foi passado método vamos mostrar a lista de métodos públicos
             if (empty($metodo)) {
-                $out = SELF::metodos($ctrl);
+                $prefix = getenv('DOMINIO') . '/' . $rota . '/';
+                // o preg_filter é para colocar a url completa nos metodos
+                $out = preg_filter('/^/', $prefix, SELF::listarMetodos($classe));
                 Flight::jsonf($out);
                 exit;
             }
 
             // se o método não existe vamos abortar
-            if (!method_exists($ctrl, $metodo)) {
+            if (!method_exists($classe, $metodo)) {
                 Flight::notFound('Metodo inexistente');
             }
 
-            $out = $ctrl->$metodo($param1);
+            // vamos fazer a chamada aqui
+            $callback = $classe . '::' . $metodo;
+            $out = $callback($param1);
+
+            // e mostrar a saída simples
             Flight::jsonf($out);
         });
     }
 
-    public static function rota($rota, $callback)
+    public static function metodos($metodos)
     {
-        Flight::route('/' . $rota . '(/@param1(/@param2(/@param3)))',
-            function ($p1, $p2, $p3) use ($rota, $callback) {
+        $rotas = array_keys($metodos);
 
-                list($class, $method) = explode('::', $callback);
+        foreach ($rotas as $rota) {
+            $callback = $metodos[$rota];
+            Flight::route('/' . $rota . '(/@param1(/@param2(/@param3)))',
+                function ($p1, $p2, $p3) use ($rota, $callback) {
 
-                // vamos gerar os parametros a serem passados 
-                $params = SELF::gerarArrayDeParametros($class, $method, [$p1, $p2, $p3]);
+                    // vamos verificar se o usuário é valido
+                    SELF::liberar('usuario', $rota);
 
-                // agora que está tudo certo vamos fazer a chamada usando cache
-                $c = new Cache($callback);
-                $out = $c->getCached($callback, $params);
+                    // vamos gerar os parametros a serem passados
+                    list($classe, $metodo) = explode('::', $callback);
+                    $params = SELF::gerarArrayDeParametros($classe, $metodo, [$p1, $p2, $p3]);
 
-                SELF::saida($out);
-            });
+                    // agora que está tudo certo vamos fazer a chamada usando cache
+                    // $callback é um metodo estático no formato classe::metodo
+                    $c = new Cache();
+                    $out = $c->getCached($callback, $params);
+
+                    SELF::formatarSaida($out);
+                });
+        }
     }
 
-    public static function controladorMetodo($controllers)
+    public static function classes($controllers)
     {
         // vamos mapear todas as rotas para o controller selecionado, similar ao codeigniter
         // pode usar até 3 parametros
-        Flight::route('/@controlador:[a-z0-9]+(/@metodo:[a-z0-9]+(/@param1(/@param2(/@param3))))',
-            function ($controlador, $metodo, $p1, $p2, $p3) use ($controllers) {
+        $rotas = array_keys($controllers);
+        foreach ($rotas as $rota) {
+            $classe = $controllers[$rota];
+            Flight::route('/' . $rota . '(/@metodo:[a-z0-9]+(/@param1(/@param2(/@param3))))',
+                function ($metodo, $p1, $p2, $p3) use ($rota, $classe) {
 
-                // se o controlador passado nao existir
-                if (empty($controllers[$controlador])) {
-                    Flight::notFound('Caminho inexistente');
-                }
+                    // vamos verificar se o usuário é valido
+                    SELF::liberar('usuario', $rota);
 
-                // vamos verificar se o usuário é valido
-                SELF::liberar('usuario', $controlador);
+                    // se nao foi passado método vamos mostrar a lista de métodos públicos
+                    if (empty($metodo)) {
+                        $prefix = getenv('DOMINIO') . '/' . $rota . '/';
+                        $out = preg_filter('/^/', $prefix, SELF::listarMetodos($classe));
+                        SELF::formatarSaida($out);
+                    }
 
-                // como o controlador existe, vamos instanciar
-                $ctrl = new $controllers[$controlador];
+                    // se o método passado não existe vamos abortar
+                    if (!method_exists($classe, $metodo)) {
+                        Flight::notFound('Metodo inexistente');
+                    }
 
-                // se nao foi passado método vamos mostrar a lista de métodos públicos
-                if (empty($metodo)) {
-                    $out = SELF::metodos($ctrl);
-                    SELF::saida($out);
-                }
+                    // vamos gerar os parametros a serem passados
+                    $params = SELF::gerarArrayDeParametros($classe, $metodo, [$p1, $p2, $p3]);
 
-                // se o método passado não existe vamos abortar
-                if (!method_exists($ctrl, $metodo)) {
-                    Flight::notFound('Metodo inexistente');
-                }
+                    // agora que está tudo certo vamos fazer a chamada usando cache
+                    $callback = $classe . '::' . $metodo;
+                    $c = new Cache();
+                    $out = $c->getCached($callback, $params);
 
-                // vamos gerar os parametros a serem passados 
-                $params = SELF::gerarArrayDeParametros($ctrl, $metodo, [$p1, $p2, $p3]);
+                    // vamos formatar a saída
+                    SELF::formatarSaida($out);
+                });
+        }
 
-                // agora que está tudo certo vamos fazer a chamada usando cache
-                $c = new Cache($ctrl);
-                $out = $c->getCached($metodo, $params);
-
-                // vamos formatar a saída
-                SELF::saida($out);
-
-            });
     }
 
     protected static function gerarArrayDeParametros($class, $method, $params)
@@ -144,7 +154,7 @@ class Webservice
 
         // se a quantidade de parametros for insuficiente vamos abortar com uma mensagem
         if ($param_passed < $param_required) {
-            Flight::jsonf('Parâmetros insuficientes');
+            Flight::jsonf('Parâmetros insuficientes. Forneça de ' . $param_required . ' a ' . $param_allowed . ' parâmetros.');
             exit;
         }
 
@@ -158,7 +168,7 @@ class Webservice
         return $ret;
     }
 
-    protected static function saida($out)
+    protected static function formatarSaida($out)
     {
         // vamos formatar a saída de acordo com format=?
         $f = Flight::request()->query['format'];
@@ -190,19 +200,13 @@ class Webservice
         Flight::start();
     }
 
-    public static function metodos($obj)
+    public static function listarMetodos($classe)
     {
-        $metodos = get_class_methods($obj);
-
-        $classe = get_class($obj);
-        if ($pos = strrpos($classe, '\\')) {
-            $classe = substr($classe, $pos + 1);
-        }
-        $classe = strtolower($classe);
+        $metodos = get_class_methods($classe);
 
         foreach ($metodos as $m) {
             // para cada método vamos obter os parâmetros
-            $r = new \ReflectionMethod($obj, $m);
+            $r = new \ReflectionMethod($classe, $m);
             $params = $r->getParameters();
 
             // vamos listar somente os métodos publicos
@@ -215,7 +219,8 @@ class Webservice
                 $p = substr($p, 0, -1);
 
                 // vamos apresentar na forma de url
-                $api[$m] = getenv('DOMINIO') . '/' . $classe . '/' . $m . $p;
+                //$api[$m] = getenv('DOMINIO') . '/' . $classe . '/' . $m . $p;
+                $api[$m] = $m . $p;
             }
         }
         return $api;

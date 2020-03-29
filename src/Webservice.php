@@ -3,7 +3,7 @@
 use Uspdev\Cache\Cache;
 use \Flight;
 
-class Rota
+class Webservice
 {
     # valores padrão para variáveis de ambiente
     const user_friendly = 0;
@@ -71,77 +71,99 @@ class Rota
         });
     }
 
+    public static function rota($map)
+    {
+        $route = $map[0];
+        Flight::route('/' . $route . '(/@param1(/@param2(/@param3)))',
+            function ($param1, $param2, $param3) use ($map) {
+
+                $callback = $map[1];
+                $out = $callback($param1);
+                SELF::saida($out);
+
+            });
+
+    }
+
     public static function controladorMetodo($controllers)
     {
         // vamos mapear todas as rotas para o controller selecionado, similar ao codeigniter
         // pode usar até 3 parametros
-        Flight::route('/@controlador:[a-z0-9]+(/@metodo:[a-z0-9]+(/@param1(/@param2(/@param3))))', function ($controlador, $metodo, $param1, $param2, $param3) use ($controllers) {
+        Flight::route('/@controlador:[a-z0-9]+(/@metodo:[a-z0-9]+(/@param1(/@param2(/@param3))))',
+            function ($controlador, $metodo, $param1, $param2, $param3) use ($controllers) {
 
-            // se o controlador passado nao existir
-            if (empty($controllers[$controlador])) {
-                Flight::notFound('Caminho inexistente');
-            }
+                // se o controlador passado nao existir
+                if (empty($controllers[$controlador])) {
+                    Flight::notFound('Caminho inexistente');
+                }
 
-            // vamos verificar se o usuário é valido
-            SELF::liberar('usuario', $controlador);
+                // vamos verificar se o usuário é valido
+                SELF::liberar('usuario', $controlador);
 
-            // como o controlador existe, vamos instanciar
-            $ctrl = new $controllers[$controlador];
+                // como o controlador existe, vamos instanciar
+                $ctrl = new $controllers[$controlador];
 
-            // se nao foi passado método vamos mostrar a lista de métodos públicos
-            if (empty($metodo)) {
-                $out = SELF::metodos($ctrl);
+                // se nao foi passado método vamos mostrar a lista de métodos públicos
+                if (empty($metodo)) {
+                    $out = SELF::metodos($ctrl);
+                    SELF::saida($out);
+                }
+
+                // se o método não existe vamos abortar
+                if (!method_exists($ctrl, $metodo)) {
+                    Flight::notFound('Metodo inexistente');
+                }
+
+                // vamos contar quantos parametros devem ser passados
+                $r = new \ReflectionMethod($ctrl, $metodo);
+                $param_allowed = $r->getNumberOfParameters();
+                $param_required = $r->getNumberOfRequiredParameters();
+
+                //vamos contar quantos parametros foram passados
+                $param_passed = 3;
+                $param_passed = empty($param3) ? 2 : $param_passed;
+                $param_passed = empty($param2) ? 1 : $param_passed;
+                $param_passed = empty($param1) ? 0 : $param_passed;
+
+                // se a quantidade de parametros for insuficiente vamos abortar com uma mensagem
+                if ($param_passed < $param_required) {
+                    Flight::jsonf('Parâmetros insuficientes');
+                    exit;
+                }
+
+                // vamos criar o array de parâmetros
+                $param = [];
+                for ($i = 1; $i <= $param_allowed; $i++) {
+                    $str = 'param' . $i;
+                    $param[] = $$str;
+                }
+                //print_r($param);exit;
+
+                // agora que está tudo certo vamos fazer a chamada usando cache
+                $c = new Cache($ctrl);
+                $out = $c->getCached($metodo, $param);
+
+                // vamos formatar a saída
+                SELF::saida($out);
+
+            });
+    }
+
+    protected static function saida($out)
+    {
+        // vamos formatar a saída de acordo com format=?
+        $f = Flight::request()->query['format'];
+        switch ($f) {
+            case 'csv':
+                Flight::csv($out);
+                break;
+            case 'json':
                 Flight::jsonf($out);
-                exit;
-            }
-
-            // se o método não existe vamos abortar
-            if (!method_exists($ctrl, $metodo)) {
-                Flight::notFound('Metodo inexistente');
-            }
-
-            // vamos contar quantos parametros devem ser passados
-            $r = new \ReflectionMethod($ctrl, $metodo);
-            $param_allowed = $r->getNumberOfParameters();
-            $param_required = $r->getNumberOfRequiredParameters();
-
-            //vamos contar quantos parametros foram passados
-            $param_passed = 3;
-            $param_passed = empty($param3) ? 2 : $param_passed;
-            $param_passed = empty($param2) ? 1 : $param_passed;
-            $param_passed = empty($param1) ? 0 : $param_passed;
-
-            // se a quantidade de parametros for insuficiente vamos abortar com uma mensagem
-            if ($param_passed < $param_required) {
-                Flight::jsonf('Parâmetros insuficientes');
-                exit;
-            }
-
-            // vamos criar o array de parâmetros
-            $param = [];
-            for ($i = 1; $i <= $param_allowed; $i++) {
-                $str = 'param' . $i;
-                $param[] = $$str;
-            }
-            //print_r($param);exit;
-
-            // agora que está tudo certo vamos fazer a chamada usando cache
-            $c = new Cache($ctrl);
-            $out = $c->getCached($metodo, $param);
-
-            // vamos formatar a saída de acordo com format=?
-            $f = Flight::request()->query['format'];
-            switch ($f) {
-                case 'csv':
-                    Flight::csv($out);
-                    break;
-                case 'json':
-                    Flight::jsonf($out);
-                    break;
-                default:
-                    Flight::json($out);
-            }
-        });
+                break;
+            default:
+                Flight::json($out);
+        }
+        exit;
     }
 
     public static function iniciar()
@@ -201,13 +223,17 @@ class Rota
         // vamos imprimir a saida em csv
         Flight::map('csv', function ($data) {
 
+            if (!is_array($data)) {
+                $data = ['msg' => $data];
+                // quebra galho para mensagem que nao é array
+            }
+
             header("Content-type: text/csv");
             header("Content-Disposition: inline; filename=file.csv");
             header("Pragma: no-cache");
             header("Expires: 0");
             $out = fopen('php://output', 'w');
             fwrite($out, "\xEF\xBB\xBF");
-
             if (!empty($data[0])) {
                 // aqui se espera um array de arrays onde as chaves são a primeira linha da planilha
                 $keys = array_keys($data[0]);
@@ -224,7 +250,7 @@ class Rota
                 }
             }
             fclose($out);
-
+            exit;
         });
 
         // vamos sobrescrever a mensagem de not found para ficar mais compatível com a API

@@ -42,7 +42,7 @@ $controllers['run'] = 'Minhaclasse1::meumetodo1';
 //Rota::raiz('mensagem');
 WS::raiz($controllers);
 
-WS::rota(['run', 'Minhaclasse1::meumetodo1']);
+WS::rota('run', 'Minhaclasse1::meumetodo1');
 // Flight::route('/run(/@param1)', function($param1) {
 //     $out = Minhaclasse1::meumetodo1($param1);
 //     Flight::json($out);

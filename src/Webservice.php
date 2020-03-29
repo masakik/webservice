@@ -71,13 +71,11 @@ class Webservice
         });
     }
 
-    public static function rota($map)
+    public static function rota($rota, $callback)
     {
-        $route = $map[0];
-        Flight::route('/' . $route . '(/@param1(/@param2(/@param3)))',
-            function ($p1, $p2, $p3) use ($map) {
+        Flight::route('/' . $rota . '(/@param1(/@param2(/@param3)))',
+            function ($p1, $p2, $p3) use ($rota, $callback) {
 
-                $callback = $map[1];
                 list($class, $method) = explode('::', $callback);
 
                 // vamos gerar os parametros a serem passados 
@@ -89,7 +87,6 @@ class Webservice
 
                 SELF::saida($out);
             });
-
     }
 
     public static function controladorMetodo($controllers)

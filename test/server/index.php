@@ -53,6 +53,6 @@ WS::rota(['run', 'Minhaclasse1::meumetodo1']);
 WS::admin();
 
 // aqui chamamos como http://servidor/controlador/metodo/parametro
-//WS::controladorMetodo($controllers);
+WS::controladorMetodo($controllers);
 
 WS::iniciar();

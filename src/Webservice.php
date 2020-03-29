@@ -75,12 +75,19 @@ class Webservice
     {
         $route = $map[0];
         Flight::route('/' . $route . '(/@param1(/@param2(/@param3)))',
-            function ($param1, $param2, $param3) use ($map) {
+            function ($p1, $p2, $p3) use ($map) {
 
                 $callback = $map[1];
-                $out = $callback($param1);
-                SELF::saida($out);
+                list($class, $method) = explode('::', $callback);
 
+                // vamos gerar os parametros a serem passados 
+                $params = SELF::gerarArrayDeParametros($class, $method, [$p1, $p2, $p3]);
+
+                // agora que está tudo certo vamos fazer a chamada usando cache
+                $c = new Cache($callback);
+                $out = $c->getCached($callback, $params);
+
+                SELF::saida($out);
             });
 
     }
@@ -90,7 +97,7 @@ class Webservice
         // vamos mapear todas as rotas para o controller selecionado, similar ao codeigniter
         // pode usar até 3 parametros
         Flight::route('/@controlador:[a-z0-9]+(/@metodo:[a-z0-9]+(/@param1(/@param2(/@param3))))',
-            function ($controlador, $metodo, $param1, $param2, $param3) use ($controllers) {
+            function ($controlador, $metodo, $p1, $p2, $p3) use ($controllers) {
 
                 // se o controlador passado nao existir
                 if (empty($controllers[$controlador])) {
@@ -109,44 +116,49 @@ class Webservice
                     SELF::saida($out);
                 }
 
-                // se o método não existe vamos abortar
+                // se o método passado não existe vamos abortar
                 if (!method_exists($ctrl, $metodo)) {
                     Flight::notFound('Metodo inexistente');
                 }
 
-                // vamos contar quantos parametros devem ser passados
-                $r = new \ReflectionMethod($ctrl, $metodo);
-                $param_allowed = $r->getNumberOfParameters();
-                $param_required = $r->getNumberOfRequiredParameters();
-
-                //vamos contar quantos parametros foram passados
-                $param_passed = 3;
-                $param_passed = empty($param3) ? 2 : $param_passed;
-                $param_passed = empty($param2) ? 1 : $param_passed;
-                $param_passed = empty($param1) ? 0 : $param_passed;
-
-                // se a quantidade de parametros for insuficiente vamos abortar com uma mensagem
-                if ($param_passed < $param_required) {
-                    Flight::jsonf('Parâmetros insuficientes');
-                    exit;
-                }
-
-                // vamos criar o array de parâmetros
-                $param = [];
-                for ($i = 1; $i <= $param_allowed; $i++) {
-                    $str = 'param' . $i;
-                    $param[] = $$str;
-                }
-                //print_r($param);exit;
+                // vamos gerar os parametros a serem passados 
+                $params = SELF::gerarArrayDeParametros($ctrl, $metodo, [$p1, $p2, $p3]);
 
                 // agora que está tudo certo vamos fazer a chamada usando cache
                 $c = new Cache($ctrl);
-                $out = $c->getCached($metodo, $param);
+                $out = $c->getCached($metodo, $params);
 
                 // vamos formatar a saída
                 SELF::saida($out);
 
             });
+    }
+
+    protected static function gerarArrayDeParametros($class, $method, $params)
+    {
+        // vamos elimitar os parametros nulos (não foram passados)
+        $params = array_filter($params, function ($v) {return !is_null($v);});
+        $param_passed = count($params);
+
+        // vamos contar os parametros do método
+        $r = new \ReflectionMethod($class, $method);
+        $param_allowed = $r->getNumberOfParameters();
+        $param_required = $r->getNumberOfRequiredParameters();
+
+        // se a quantidade de parametros for insuficiente vamos abortar com uma mensagem
+        if ($param_passed < $param_required) {
+            Flight::jsonf('Parâmetros insuficientes');
+            exit;
+        }
+
+        // vamos criar o array de parâmetros, limitando à quantidade permitida
+        $ret = [];
+        for ($i = 0; $i < $param_passed; $i++) {
+            if ($i < $param_allowed) {
+                $ret[] = $params[$i];
+            }
+        }
+        return $ret;
     }
 
     protected static function saida($out)

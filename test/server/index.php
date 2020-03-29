@@ -7,8 +7,22 @@ if (is_file(__DIR__ . '/../../vendor/autoload.php')) {
     require_once __DIR__ . '/../../../../../vendor/autoload.php';
 }
 
-use Uspdev\Ipcontrol\Ipcontrol;
-use Uspdev\Webservice\Webservice as WS;
+$amb = 'dev';
+
+if ($amb == 'dev') {
+    ini_set('display_errors', 1);
+    ini_set('display_startup_errors', 1);
+    error_reporting(E_ALL);
+
+    # 1-faz o navegador solicitar as credenciais do usuário;
+    # 0-nega acesso se for o caso sem solictar novas credenciais (default)
+    putenv('USPDEV_WEBSERVICE_USER_FRIENDLY=1');
+}
+
+if ($amb == 'prod') {
+    ini_set('display_errors', 0);
+    ini_set('display_startup_errors', 0);
+}
 
 # 1-cache desabilitado
 # 0-cache normal (default)
@@ -28,14 +42,13 @@ putenv('DOMINIO=http://' . $_SERVER['HTTP_HOST'] . Flight::request()->base); # s
 // local onde o webservice colocará arquivos sqlite, logs, etc.
 putenv('USPDEV_WEBSERVICE_LOCAL=' . __DIR__ . '/..');
 
-# 1-faz o navegador solicitar as credenciais do usuário;
-# 0-nega acesso se for o caso sem solictar novas credenciais (default)
-putenv('USPDEV_WEBSERVICE_USER_FRIENDLY=1');
-
-# Rota para gerencimaneto do webservice . default='ws'
+# Rota para gerencimaneto do webservice . 
+# default='ws'
 putenv('USPDEV_WEBSERVICE_ADMIN_ROUTE=ws');
 
-// ----------------------------
+// ------------------------------------------------
+use Uspdev\Ipcontrol\Ipcontrol;
+use Uspdev\Webservice\Webservice as WS;
 
 // vamos carregar alguns dados para testes
 require_once __DIR__ . '/../mock_data.php';

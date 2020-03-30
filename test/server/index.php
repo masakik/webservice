@@ -17,17 +17,17 @@ if ($amb == 'dev') {
     # 1-faz o navegador solicitar as credenciais do usuário;
     # 0-nega acesso se for o caso sem solictar novas credenciais (default)
     putenv('USPDEV_WEBSERVICE_USER_FRIENDLY=1');
+
+    # 1-cache desabilitado
+    # 0-cache normal (default)
+    # veja https://github.com/uspdev/cache
+    putenv('USPDEV_CACHE_DISABLE=1');
 }
 
 if ($amb == 'prod') {
     ini_set('display_errors', 0);
     ini_set('display_startup_errors', 0);
 }
-
-# 1-cache desabilitado
-# 0-cache normal (default)
-# veja https://github.com/uspdev/cache
-putenv('USPDEV_CACHE_DISABLE=1');
 
 # Vamos limitar o acesso à máquina local
 # ''-desabilitado (default)
@@ -40,9 +40,9 @@ putenv('USPDEV_IP_CONTROL=localhost');
 putenv('DOMINIO=http://' . $_SERVER['HTTP_HOST'] . Flight::request()->base); # sem / no final
 
 // local onde o webservice colocará arquivos sqlite, logs, etc.
-putenv('USPDEV_WEBSERVICE_LOCAL=' . __DIR__ . '/..');
+putenv('USPDEV_WEBSERVICE_LOCAL=' . realpath(__DIR__ . '/..'));
 
-# Rota para gerencimaneto do webservice . 
+# Rota para gerencimaneto do webservice .
 # default='ws'
 putenv('USPDEV_WEBSERVICE_ADMIN_ROUTE=ws');
 

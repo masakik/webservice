@@ -122,21 +122,21 @@ class Auth
 
     protected static function abreDB()
     {
-        if (!DB::testConnection()) {
+        // se não estiver configurado vamos fazê-lo
+        if (!DB::hasDatabase('webservice_auth')) {
             DB::addDatabase('webservice_auth', 'sqlite:' . getenv('USPDEV_WEBSERVICE_LOCAL') . '/' . SELF::auth_file);
-            DB::selectDatabase('webservice_auth');
-            DB::useFeatureSet('novice/latest');
 
-            // se o DB não existir vamos criar 
-            if (!is_file(getenv('USPDEV_WEBSERVICE_LOCAL') . '/' . SELF::auth_file)) {
+            // se o DB não existir vamos criar
+            if (empty(DB::inspect('usuario'))) {
                 $u = DB::findOrCreate('usuario', ['username' => 'admin', 'pwd' => 'admin', 'admin' => '1', 'allow' => '']);
                 DB::store($u);
                 DB::hunt('usuario', 'username = ?', ['admin']);
             }
-
-            DB::freeze(true);
         }
+
         DB::selectDatabase('webservice_auth');
+        DB::useFeatureSet('novice/latest');
+        DB::freeze(true);
     }
 
     protected static function fechaDB()

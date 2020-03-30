@@ -125,6 +125,7 @@ class Auth
         // se não estiver configurado vamos fazê-lo
         if (!DB::hasDatabase('webservice_auth')) {
             DB::addDatabase('webservice_auth', 'sqlite:' . getenv('USPDEV_WEBSERVICE_LOCAL') . '/' . SELF::auth_file);
+            DB::selectDatabase('webservice_auth');
 
             // se o DB não existir vamos criar
             if (empty(DB::inspect('usuario'))) {
@@ -132,9 +133,10 @@ class Auth
                 DB::store($u);
                 DB::hunt('usuario', 'username = ?', ['admin']);
             }
+        } else {
+            DB::selectDatabase('webservice_auth');
         }
-
-        DB::selectDatabase('webservice_auth');
+        
         DB::useFeatureSet('novice/latest');
         DB::freeze(true);
     }

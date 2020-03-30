@@ -2,3 +2,4 @@
 /vendor/
 /test/uspdev_webservice_auth.db3
 /sandbox/
+composer.lock

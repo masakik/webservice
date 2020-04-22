@@ -129,10 +129,14 @@ class Webservice
                     // vamos gerar os parametros a serem passados
                     $params = SELF::gerarArrayDeParametros($classe, $metodo, [$p1, $p2, $p3]);
 
+                    // vamos instanciar a classe e injetar parâmetros vindos por GET e POST
+                    $callback = new $classe;
+                    $callback->query = Flight::request()->query;
+                    $callback->data = Flight::request()->data;
+                    
                     // agora que está tudo certo vamos fazer a chamada usando cache
-                    $callback = $classe . '::' . $metodo;
-                    $c = new Cache();
-                    $out = $c->getCached($callback, $params);
+                    $c = new Cache($callback);
+                    $out = $c->getCached($metodo, $params);
 
                     // vamos formatar a saída
                     SELF::formatarSaida($out);
